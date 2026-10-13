@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CodeRush Kombat</title>
+<meta name="description" content="A 2D canvas fighting game where coding questions decide the big moments.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@500;700;900&family=Grenze:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/*{{STYLE}}*/
+</style>
+</head>
+<body>
+<div id="stage" aria-hidden="true"></div>
+<div id="flash"></div>
+
+<header id="hud" class="hidden">
+  <div class="side s0">
+    <div class="name-row"><span class="fname" id="name0">Serpent.py</span><span class="pips" id="pips0"><i></i><i></i></span></div>
+    <div class="bar"><div class="bar-in"><div class="ghost" id="ghost0"></div><div class="fill" id="fill0"></div></div></div>
+    <div class="meter" id="meter0" aria-hidden="true"><i><b></b></i><i><b></b></i><i><b></b></i></div>
+    <div class="chips" id="chips0"></div>
+  </div>
+  <div class="clock">
+    <div id="timer">90</div>
+    <div class="sub" id="roundLbl">Round 1</div>
+    <div class="sub" id="boxLbl"></div>
+  </div>
+  <div class="side s1">
+    <div class="name-row"><span class="fname" id="name1">Undefined.js</span><span class="pips" id="pips1"><i></i><i></i></span></div>
+    <div class="bar"><div class="bar-in"><div class="ghost" id="ghost1"></div><div class="fill" id="fill1"></div></div></div>
+    <div class="meter" id="meter1" aria-hidden="true"><i><b></b></i><i><b></b></i><i><b></b></i></div>
+    <div class="chips" id="chips1"></div>
+  </div>
+</header>
+<div class="combo c0" id="combo0"></div>
+<div class="combo c1" id="combo1"></div>
+<div id="banner" class="banner" aria-live="assertive"></div>
+
+<section id="q" class="q hidden" aria-live="polite">
+  <div class="q-top"><h2 id="qTitle"></h2><span class="q-lang" id="qLang"></span></div>
+  <p class="q-stakes" id="qStakes"></p>
+  <pre class="q-code"><code id="qCode"></code></pre>
+  <div class="q-opts" id="qOpts">
+    <div class="opt"><b>A</b><span class="txt"></span><span class="marks"></span></div>
+    <div class="opt"><b>B</b><span class="txt"></span><span class="marks"></span></div>
+    <div class="opt"><b>C</b><span class="txt"></span><span class="marks"></span></div>
+    <div class="opt"><b>D</b><span class="txt"></span><span class="marks"></span></div>
+  </div>
+  <div class="q-timer"><div id="qBar"></div></div>
+  <div class="q-who" id="qWho"></div>
+  <div class="q-result" id="qResult"></div>
+  <div class="q-keys" id="qKeys"></div>
+</section>
+
+<div id="menu" class="overlay">
+  <div class="menu-inner">
+    <h1 class="logo"><span class="logo-a">CodeRush</span><span class="logo-b">Kombat</span></h1>
+    <p class="tagline">Punch, kick, and out-think your opponent. Coding questions show up at four moments in the fight, and you answer them with your attack buttons.</p>
+    <div class="actions">
+      <button class="btn primary" id="btnCpu">Fight the CPU</button>
+      <button class="btn" id="btn2p">Two players</button>
+    </div>
+    <p class="touch-note">On a phone? Turn it sideways. Touch buttons appear once the fight starts, and the A B C D buttons answer the questions.</p>
+    <p class="gfx-row">Graphics <button class="gfx-btn" id="btnGfx" type="button">Auto</button></p>
+    <div class="info">
+      <div class="panel">
+        <h3>Controls</h3>
+        <div class="table-wrap">
+        <table class="controls">
+          <thead><tr><th></th><th>Serpent.py</th><th>Undefined.js</th><th>Controller</th></tr></thead>
+          <tbody>
+            <tr><th>Move</th><td><kbd>A</kbd> <kbd>D</kbd></td><td><kbd>←</kbd> <kbd>→</kbd></td><td>Stick or d-pad</td></tr>
+            <tr><th>Jump</th><td><kbd>W</kbd></td><td><kbd>↑</kbd></td><td>Stick or d-pad up</td></tr>
+            <tr><th>Block</th><td><kbd>S</kbd></td><td><kbd>↓</kbd></td><td>L2 / LT</td></tr>
+            <tr><th>Attacks</th>
+              <td><span class="kgrid"><kbd>U</kbd><kbd>I</kbd><kbd>J</kbd><kbd>K</kbd></span></td>
+              <td><span class="kgrid"><kbd>7</kbd><kbd>8</kbd><kbd>4</kbd><kbd>5</kbd></span> numpad</td>
+              <td><span class="kgrid"><kbd>□</kbd><kbd>△</kbd><kbd>✕</kbd><kbd>○</kbd></span></td></tr>
+            <tr><th>Special</th><td><kbd>H</kbd></td><td><kbd>1</kbd> numpad</td><td>R3 / stick click</td></tr>
+            <tr><th>Amplify</th><td><kbd>O</kbd></td><td><kbd>3</kbd> numpad</td><td>R2 / RT</td></tr>
+            <tr><th>Fatal Blow</th><td><kbd>P</kbd></td><td><kbd>9</kbd> numpad</td><td>L1 / LB</td></tr>
+            <tr><th>Double or nothing</th><td><kbd>L</kbd></td><td><kbd>6</kbd> numpad</td><td>R1 / RB</td></tr>
+          </tbody>
+        </table>
+        </div>
+        <p class="note">Top row of the attack grid is the light and heavy sword slash, bottom row is the light and heavy spin cut. Hold block to guard. The same four buttons answer A, B, C and D. Against the CPU you can also use the arrows and numpad. Esc pauses, M mutes.</p>
+        <h3>Special moves</h3>
+        <p class="note">Each fighter has two, done on a motion: <b>back, forward</b> then the first attack button, and <b>down, back</b> then the second — the whole motion inside 0.4 seconds. The Special button does the same thing without the motion, and does the second move if you hold block while pressing it. Specials cost nothing, but pressing Amplify while one is still coming out spends a bar of meter to make it hit harder and land bigger. Projectiles can be blocked for chip damage, and two of them thrown at once cancel each other out.</p>
+        <h3>Juggles</h3>
+        <p class="note">Two hits stand the opponent up; a third one staggers them, and a third heavy one puts them on the floor. Amplify spends one bar of the meter under your health to launch them instead, and while they're up there every hit keeps them up — a little less each time, so the juggle always comes down. They bounce off the ground, lie there, and get up briefly untouchable. The meter fills whenever you land a hit or take one.</p>
+      </div>
+      <div class="panel">
+        <h3>When questions appear</h3>
+        <dl class="moments">
+          <dt>Serpent.py</dt><dd><b>Pointer Pull</b> — a chain that yanks them into a free hit. <b>Goto Strike</b> — he comes apart into pixels and puts himself back together behind them.</dd>
+          <dt>Undefined.js</dt><dd><b>Null Freeze</b> — a cold orb that holds them still for a second and a half. <b>Recursion Portal</b> — the floor opens under them and hands them back out behind him.</dd>
+          <dt>Combo clash</dt><dd>A combo reaches 4 hits, on the floor or mid-juggle. Both players answer. Attacker first gets 3 bonus hits; defender first breaks free.</dd>
+          <dt>Mystery box</dt><dd>Drops every 30 seconds. Walk into it to answer, but you're frozen and open to hits until you do.</dd>
+          <dt>Fatal Blow</dt><dd>Unlocks below 30% health. Landing one takes the arena over: the stage goes dark and both players race to answer for the damage — 30, or 15 — and then the whole take plays out.</dd>
+          <dt>Double or nothing</dt><dd>Also below 30%. One hard question: heal 25 or lose 10. Using either one locks the other for the round.</dd>
+        </dl>
+      </div>
+    </div>
+    <p class="gfx-row"><button class="btn small" id="btnCredits" type="button">Credits</button></p>
+  </div>
+</div>
+
+<div id="credits" class="overlay hidden">
+  <div class="menu-inner">
+    <h2 class="credits-title">Credits</h2>
+    <p class="credits-sub">The fighters and the stage are pixel art by two artists who put their work out for everyone to use. The fight is built around it.</p>
+    <div class="credit-grid">
+      <div class="panel credit">
+        <h3>Fighter sprites</h3>
+        <p class="by"><a href="https://luizmelo.itch.io/" target="_blank" rel="noopener">LuizMelo</a></p>
+        <p class="what">Serpent.py is <a href="https://luizmelo.itch.io/martial-hero" target="_blank" rel="noopener">Martial Hero</a>; Undefined.js is <a href="https://luizmelo.itch.io/martial-hero-2" target="_blank" rel="noopener">Martial Hero 2</a>. Idle, run, jump, fall, both attacks, take-hit and death animations.</p>
+        <p class="lic">Released under CC0. Credit isn't required — it's here because the art deserves it.</p>
+      </div>
+      <div class="panel credit">
+        <h3>Stage and background</h3>
+        <p class="by"><a href="https://brullov.itch.io/" target="_blank" rel="noopener">brullov</a></p>
+        <p class="what">The woods and the animated shop come from the <a href="https://brullov.itch.io/oak-woods" target="_blank" rel="noopener">Oak Woods</a> environment pack. The night tint, embers and lighting are drawn on top at run time.</p>
+        <p class="lic">Free for personal and commercial use with credit; not for resale or redistribution.</p>
+      </div>
+      <div class="panel credit">
+        <h3>Everything else</h3>
+        <p class="by">This build</p>
+        <p class="what">Canvas 2D engine, fighting system, question moments, CPU opponent, HUD and the synthesised sound effects — no sound files, no animation libraries, no network calls once the page has loaded.</p>
+        <p class="lic">Fonts: Grenze, Grenze Gotisch and JetBrains Mono, served by Google Fonts.</p>
+      </div>
+    </div>
+    <p class="credit-foot">The 2D sprite fighter this one is modelled on is <a href="https://github.com/Divak-ar/mortal-kombat" target="_blank" rel="noopener">Divak-ar/mortal-kombat</a>, which is where these two art packs were first put together. The code here was written from scratch.</p>
+    <div class="actions"><button class="btn primary" id="btnCreditsBack">Back</button></div>
+  </div>
+</div>
+
+<div id="pause" class="overlay hidden">
+  <div class="menu-inner end-inner">
+    <h2 class="end-title">Paused</h2>
+    <div class="actions"><button class="btn primary" id="btnResume">Resume</button><button class="btn" id="btnQuit">Quit to menu</button></div>
+  </div>
+</div>
+
+<div id="end" class="overlay hidden">
+  <div class="menu-inner end-inner">
+    <h2 class="end-title" id="endTitle"></h2>
+    <div class="stats" id="endStats"></div>
+    <div class="actions"><button class="btn primary" id="btnRematch">Rematch</button><button class="btn" id="btnMenu">Change mode</button></div>
+  </div>
+</div>
+
+<div id="nocanvas" class="overlay hidden">
+  <div class="menu-inner end-inner">
+    <h2 class="end-title">Can't start the arena</h2>
+    <p class="tagline">This game needs a 2D canvas, which this browser has turned off or doesn't support. Open it in a recent version of Chrome, Firefox or Edge.</p>
+  </div>
+</div>
+<div id="toast"></div>
+<div id="touch" aria-hidden="true">
+  <div class="tpad">
+    <button class="tb" data-code="KeyA" type="button">◀</button>
+    <button class="tb" data-code="KeyD" type="button">▶</button>
+    <button class="tb half" data-code="KeyW" type="button">Jump</button>
+    <button class="tb half" data-code="KeyS" type="button">Block</button>
+  </div>
+  <div class="tact">
+    <button class="tb small" id="tbAmp" data-code="KeyO" type="button">Amplify</button>
+    <button class="tb small" id="tbSpecial" data-code="KeyH" type="button">Special</button>
+    <button class="tb small" id="tbFatal" data-code="KeyP" type="button">Fatal Blow</button>
+    <button class="tb small" id="tbDon" data-code="KeyL" type="button">Double or nothing</button>
+    <button class="tb attack" data-code="KeyU" type="button"><b>A</b><small>Slash</small></button>
+    <button class="tb attack" data-code="KeyI" type="button"><b>B</b><small>Heavy</small></button>
+    <button class="tb attack" data-code="KeyJ" type="button"><b>C</b><small>Spin</small></button>
+    <button class="tb attack" data-code="KeyK" type="button"><b>D</b><small>Big spin</small></button>
+  </div>
+  <button class="tpause" id="tbPause" type="button">Pause</button>
+</div>
+<div id="rotate">Turn your phone sideways to play</div>
+
+<script>
+/*{{SPRITES}}*/
+/*{{GAME}}*/
+</script>
+</body>
+</html>
