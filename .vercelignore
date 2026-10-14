@@ -1,0 +1,6 @@
+# The deployed site is one self-contained file: tools/build.mjs inlines the CSS, the
+# JavaScript and every sprite as base64, so none of the sources need to ship.
+art/
+src/
+assets/
+tools/
