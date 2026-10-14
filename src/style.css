@@ -96,6 +96,7 @@ body.touch .chip-sp{ display:none; }
 .banner.show{ animation:slam .5s cubic-bezier(.2,1.4,.4,1) forwards; }
 @keyframes slam{ 0%{ opacity:0; transform:translateY(-50%) scale(1.7); } 100%{ opacity:1; transform:translateY(-50%) scale(1); } }
 .banner.ko{ color:#ff3b2f; text-shadow:0 5px 0 #000, 0 0 50px rgba(255,20,10,.7); }
+.banner.tech{ color:#9fe8ff; text-shadow:0 5px 0 #000, 0 0 50px rgba(90,200,255,.75); }
 .banner.clash,.banner.win{ color:#f0c75e; }
 .banner.don{ color:#9ef0c0; }
 #flash{ position:fixed; inset:0; z-index:4; pointer-events:none; opacity:0; transition:opacity .5s;
@@ -210,6 +211,22 @@ body.touch.playing #touch{ display:block; }
 .tb.small.ready{ opacity:1; border-color:var(--ember); box-shadow:0 0 14px rgba(255,122,26,.55); color:#ffd9b8; }
 .tact .tb.attack b{ font-weight:900; }
 body.answering .tact .tb.attack{ border-color:#f0c75e; box-shadow:0 0 16px rgba(240,199,94,.45); }
+/* being held: the throw button is the way out, for the third of a second it lasts */
+body.teching #tbThrow{ border-color:#9fe8ff; box-shadow:0 0 20px rgba(120,220,255,.8); color:#dff6ff; opacity:1; }
+/* The action cluster is five small buttons and a 2x2 attack grid now. On a short viewport
+   that is taller than the screen, and the top row walks off it - so below this height
+   everything in the cluster shrinks together rather than being pushed out of sight. */
+@media (max-height: 360px){
+  #touch{ --tb:clamp(42px,13vmin,70px); }
+  .tb.small{ height:calc(var(--tb) * .58); font-size:calc(var(--tb) * .17); }
+  .tpad,.tact{ gap:6px; }
+}
+@media (max-height: 240px){          /* a small phone with the browser bars still showing */
+  #touch{ --tb:38px; }
+  .tb.small{ height:calc(var(--tb) * .54); font-size:calc(var(--tb) * .19); }
+  .tpad,.tact{ gap:4px; bottom:calc(env(safe-area-inset-bottom,0px) + 8px); }
+  .tpause{ display:none; }
+}
 .tpause{ position:absolute; bottom:calc(env(safe-area-inset-bottom,0px) + 10px); left:50%; transform:translateX(-50%);
   pointer-events:auto; touch-action:none; font-family:'Grenze', serif; font-size:14px; color:var(--bone-dim); background:rgba(24,15,12,.6);
   border:1px solid rgba(201,162,74,.5); border-radius:999px; padding:4px 14px; }

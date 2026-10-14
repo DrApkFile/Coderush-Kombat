@@ -110,6 +110,8 @@ const sfx = {
   freeze: () => { tone(1200, .5, 'sine', .3, 220); tone(880, .45, 'triangle', .16, 180, .03); noise(.35, 5200, 2.4, .22); },
   portal: () => { tone(140, .5, 'sawtooth', .22, 520); tone(520, .4, 'sine', .14, 160, .06); noise(.3, 700, .9, .2); },
   warp: () => { tone(900, .18, 'square', .2, 180); noise(.12, 2200, 2, .22); },
+  grab: () => { noise(.1, 520, 1.1, .5); tone(190, .14, 'square', .3, 120); },
+  slam: () => { tone(66, .36, 'sine', .95, 30); noise(.26, 220, .6, .8); },
 };
 function speak(text){
   if (!soundOn || !('speechSynthesis' in window)) return;
@@ -249,13 +251,14 @@ const SHEETS = {
       attack2:{ img:'serpent/attack2', frames:6, impact:4 },
       hit:{ img:'serpent/hit', frames:4, fps:16 },
       death:{ img:'serpent/death', frames:6, fps:9 },
+      block:{ img:'serpent/block', frames:4, fps:7, loop:true },   // drawn-sword guard, settling
       // Juggle poses. The dy values put each pose's lowest pixel on the floor rather than
       // through it; they were measured off the sheets, so they move if the art does.
       // These are placeholders: each one borrows the frames of another
       // animation and bends them with a canvas transform at draw time (see `pose` in
       // drawFighter). To drop in real art, add the strip to tools/build.mjs, point `img`
       // at it, set its frame count, and delete the `pose` - nothing else changes.
-      launcher:{ img:'serpent/attack2', frames:6, impact:4, pose:{ rot:-.16, pivot:70 } },
+      launcher:{ img:'serpent/launcher', frames:5, impact:3 },   // real strip: overhead thrust, then the uncoil
       stagger:{ img:'serpent/hit', frames:4, fps:5, pose:{ rot:-.3, pivot:34, dy:-20 } },
       airhit:{ img:'serpent/hit', frames:4, fps:11, pose:{ rot:-.5, pivot:60, dy:-18 } },
       tumble:{ img:'serpent/fall', frames:2, fps:9, loop:true, pose:{ rot:.4, pivot:26, flipY:true, dy:118 } },
@@ -263,18 +266,25 @@ const SHEETS = {
       getup:{ img:'serpent/death', frames:6, fps:14, reverse:true },
       // Fatal Blow strips. Same deal: borrowed frames, bent by a transform, named here so a
       // real serpent/fatal_* strip replaces one by changing img and dropping pose.
-      fatalDash:{ img:'serpent/run', frames:8, fps:16, loop:true, pose:{ rot:.2, pivot:52, dy:-14 } },
-      fatalHit1:{ img:'serpent/attack1', frames:6, pose:{ rot:-.08, pivot:60, dy:-6 } },
-      fatalHit2:{ img:'serpent/attack2', frames:6, pose:{ rot:.12, pivot:60, dy:-34 } },
-      fatalHit3:{ img:'serpent/attack1', frames:6, pose:{ rot:.17, pivot:66, dy:-44 } },
-      fatalRise:{ img:'serpent/attack2', frames:6, pose:{ rot:-.42, pivot:74, dy:-18 } },
-      fatalSlam:{ img:'serpent/attack2', frames:6, pose:{ rot:.46, pivot:84, dy:-101 } },
+      fatalDash:{ img:'serpent/fatal_dash', frames:4, fps:16, loop:true },
+      fatalHit1:{ img:'serpent/fatal_hit1', frames:3 },      // a lunging cut across
+      fatalHit2:{ img:'serpent/fatal_hit2', frames:3 },      // high to mid: a chop down
+      fatalHit3:{ img:'serpent/fatal_hit3', frames:3 },      // mid to high: a rising cut
+      fatalRise:{ img:'serpent/fatal_rise', frames:4 },
+      fatalSlam:{ img:'serpent/fatal_slam', frames:4 },      // beats 6 and 7 share this one
       fatalTake:{ img:'serpent/hit', frames:4, fps:12, pose:{ rot:-.6, pivot:54, dy:-24 } },
       // The casting stance for specials: the first frame of the spin, leaned back into a
       // brace. It has to be the first one - later frames in these strips are mostly the white
       // slash effect painted over the fighter, which on its own reads as a blank flash.
       // A real serpent/cast strip replaces this with img, frames and no of/offset/pose.
-      cast:{ img:'serpent/attack2', frames:1, of:6, offset:0, pose:{ rot:-.16, pivot:58, dy:-5 } },
+      cast:{ img:'serpent/cast', frames:4, fps:12 },               // coil, then thrust forward
+      // Throws. Real Grab / Throw / Thrown strips replace these by pointing img at them and
+      // dropping of/offset/pose; `thrown` is spun at draw time, so it needs a pivot near the
+      // middle of the body whatever art ends up in it.
+      grab:{ img:'serpent/grab', frames:3, fps:15 },
+      throwHold:{ img:'serpent/throw', frames:5, fps:6 },          // grip, hoist, swing over, release
+      grabbed:{ img:'serpent/hit', frames:1, of:4, offset:0, pose:{ rot:-.26, pivot:54, dy:-10 } },
+      thrown:{ img:'serpent/fall', frames:2, of:2, offset:0, fps:12, loop:true, pose:{ pivot:58 } },
     },
   },
   undefined_js: {
@@ -288,20 +298,25 @@ const SHEETS = {
       attack2:{ img:'undefined/attack2', frames:4, impact:1 },
       hit:{ img:'undefined/hit', frames:3, fps:14 },
       death:{ img:'undefined/death', frames:7, fps:9 },
-      launcher:{ img:'undefined/attack2', frames:4, impact:1, pose:{ rot:-.09, pivot:70, dy:-22 } },
+      block:{ img:'undefined/block', frames:4, fps:7, loop:true },   // two-handed overhead guard
+      launcher:{ img:'undefined/launcher', frames:5, impact:3 },   // floor to full overhead
       stagger:{ img:'undefined/hit', frames:3, fps:4.5, pose:{ rot:-.3, pivot:34, dy:-10 } },
       airhit:{ img:'undefined/hit', frames:3, fps:9, pose:{ rot:-.5, pivot:60 } },
       tumble:{ img:'undefined/fall', frames:2, fps:9, loop:true, pose:{ rot:.4, pivot:28, flipY:true, dy:130 } },
       knockdown:{ img:'undefined/fall', frames:2, fps:7, pose:{ rot:-1.32, dy:-66 } },
       getup:{ img:'undefined/death', frames:7, fps:16, reverse:true },
-      fatalDash:{ img:'undefined/run', frames:8, fps:15, loop:true, pose:{ rot:.24, pivot:50, dy:-16 } },
-      fatalHit1:{ img:'undefined/attack1', frames:4, pose:{ rot:-.1, pivot:58, dy:-24 } },
-      fatalHit2:{ img:'undefined/attack2', frames:4, pose:{ rot:.14, pivot:62, dy:-12 } },
-      fatalHit3:{ img:'undefined/attack1', frames:4, pose:{ rot:.2, pivot:68, dy:-14 } },
-      fatalRise:{ img:'undefined/attack2', frames:4, pose:{ rot:-.46, pivot:76, dy:-88 } },
-      fatalSlam:{ img:'undefined/attack2', frames:4, pose:{ rot:.5, pivot:86, dy:4 } },
+      fatalDash:{ img:'undefined/fatal_dash', frames:4, fps:15, loop:true },
+      fatalHit1:{ img:'undefined/fatal_hit1', frames:3 },    // vertical blade, driving forward
+      fatalHit2:{ img:'undefined/fatal_hit2', frames:3 },    // high to low: a chop down
+      fatalHit3:{ img:'undefined/fatal_hit3', frames:3 },    // low to high: a rising cut
+      fatalRise:{ img:'undefined/fatal_rise', frames:4 },
+      fatalSlam:{ img:'undefined/fatal_slam', frames:4 },    // beats 6 and 7 share this one
       fatalTake:{ img:'undefined/hit', frames:3, fps:10, pose:{ rot:-.64, pivot:52, dy:-2 } },
-      cast:{ img:'undefined/attack2', frames:1, of:4, offset:0, pose:{ rot:-.2, pivot:56, dy:-35 } },
+      cast:{ img:'undefined/cast', frames:4, fps:12 },             // coil, thrust forward, rise
+      grab:{ img:'undefined/grab', frames:3, fps:15 },
+      throwHold:{ img:'undefined/throw', frames:5, fps:6 },        // low grip, lift, fling, release
+      grabbed:{ img:'undefined/hit', frames:1, of:3, offset:0, pose:{ rot:-.3, pivot:52, dy:-8 } },
+      thrown:{ img:'undefined/fall', frames:2, of:2, offset:0, fps:12, loop:true, pose:{ pivot:56, dy:-4 } },
     },
   },
 };
@@ -401,7 +416,7 @@ const F = CFG.map((c, i) => ({
   power:null, lowUsed:{ fatal:false, don:false }, roundLow:false, fatalCD:0,
   meter:0, juggle:0, bounced:false, downT:DOWN_T,
   motion:[], dirPrev:{}, special:null, specAmp:false, specFired:false, spCD:[0, 0],
-  frozen:0, vanish:0,
+  frozen:0, vanish:0, throwCD:0, throwBack:false, poseSpin:0,
   animT:0, flash:0, inputLock:0, stats:{ asked:0, right:0 }, chipsHTML:'',
 }));
 const other = f => F[1 - f.id];
@@ -431,6 +446,13 @@ function frameOf(f){
       return { a, i:clamp(imp + Math.floor((f.stateT - m.startup) / span * rest), imp, a.frames - 1) };
     }
     case 'cast': { const a = A.cast || A.attack2; return { a, i:clamp(Math.floor(f.animT * (a.fps || 12)), 0, a.frames - 1) }; }
+    case 'grab': { const a = A.grab || A.attack1; return { a, i:clamp(Math.floor(f.stateT * (a.fps || 14)), 0, a.frames - 1) }; }
+    case 'throw': {                                  // played across hold -> lift -> slam
+      const a = A.throwHold || A.grab || A.attack1;
+      return { a, i:clamp(Math.floor(f.stateT * (a.fps || 6)), 0, a.frames - 1) };
+    }
+    case 'grabbed': { const a = A.grabbed || A.hit; return { a, i:0 }; }
+    case 'thrown': { const a = A.thrown || A.fall; return { a, i:Math.floor(f.animT * (a.fps || 10)) % a.frames }; }
     case 'frozen': return { a:A.hit, i:0 };          // held in the pose the ice caught them in
     case 'hit': return { a:A.hit, i:oneShot(A.hit, f.animT) };
     case 'stagger': { const a = A.stagger || A.hit; return { a, i:oneShot(a, f.animT) }; }
@@ -439,7 +461,7 @@ function frameOf(f){
       return { a, i:oneShot(a, f.animT) };
     }
     case 'blockstun': return { a:A.hit, i:0 };
-    case 'block': return { a:A.idle, i:0 };
+    case 'block': { const a = A.block || A.idle; return { a, i:a.loop ? oneShot(a, f.animT) : 0 }; }
     case 'air': return f.vy < 0 ? { a:A.jump, i:oneShot(A.jump, f.animT) } : { a:A.fall, i:oneShot(A.fall, f.animT) };
     case 'down': { const a = A.knockdown || A.death; return { a, i:oneShot(a, f.animT * 2.2) }; }
     case 'getup': { const a = A.getup || A.death; return { a, i:oneShot(a, f.animT) }; }
@@ -474,14 +496,17 @@ function drawFighter(f, t){
   // A placeholder pose: borrowed frames bent into a new shape by the transform, not by new
   // art. It runs inside the facing flip, so a lean or a spin mirrors with the fighter.
   // pivot is in sprite pixels above the feet, rot in radians, dx/dy in stage pixels.
-  const pose = a.pose;
-  if (pose){
-    if (pose.dx || pose.dy) ctx.translate(pose.dx || 0, pose.dy || 0);
-    if (pose.rot || pose.flipX || pose.flipY){
-      const pv = (pose.pivot || 0) * sc;
+  // `poseSpin` is a rotation the game adds on top of the strip's own pose, for a fighter
+  // being turned over in the air by something - a throw, for now.
+  const pose = a.pose, spin = f.poseSpin || 0;
+  if (pose || spin){
+    const q = pose || {}, rot = (q.rot || 0) + spin;
+    if (q.dx || q.dy) ctx.translate(q.dx || 0, q.dy || 0);
+    if (rot || q.flipX || q.flipY){
+      const pv = (q.pivot || 0) * sc;
       ctx.translate(0, -pv);
-      if (pose.rot) ctx.rotate(pose.rot);
-      if (pose.flipX || pose.flipY) ctx.scale(pose.flipX ? -1 : 1, pose.flipY ? -1 : 1);
+      if (rot) ctx.rotate(rot);
+      if (q.flipX || q.flipY) ctx.scale(q.flipX ? -1 : 1, q.flipY ? -1 : 1);
       ctx.translate(0, pv);
     }
   }
@@ -697,6 +722,7 @@ function tryHit(att, def, a){
   // them from the floor possible at all
   if (Math.abs(def.y - att.y) > (def.state === 'airhit' ? AIR_REACH : 122)) return;   // else they jumped clear of it
   if (def.state === 'down' || def.state === 'getup' || def.state === 'ko' || def.invuln > 0) return;
+  if (def.state === 'grabbed' || def.state === 'thrown') return;      // already in someone's hands
   att.attackHit = true;
   const hx = (att.x + def.x) / 2 + att.facing * 14, hy = a.y;
   const facingAtt = Math.sign(att.x - def.x) === def.facing;
@@ -844,6 +870,127 @@ function breakaway(def, att){
 
 
 
+
+// ---------------------------------------------------------------- throws
+// A throw beats a guard, which is what stops blocking from being a free ride - so the only
+// answer to one is to tech it. The grab hands the defender a window measured in frames, and
+// the white flash on contact is the cue that the window has opened.
+const THROW = {
+  startup:.10, active:.08, recovery:.32,              // the whiff, if it catches nothing
+  // Two standing fighters can never be closer than MIN_GAP (82), so a throw that only
+  // reached 98 left 16px of tolerance - and holding back to get a back throw walks you out of
+  // it before the grab lands. This is still far and away the shortest range in the game: the
+  // quickest punch reaches 188.
+  range:132, reach:84,
+  tech:.35,                                           // the window the defender gets
+  hold:.42, lift:.26, slam:.20,                       // the throw itself, once the window shuts
+  dmg:14, backDmg:17, lifted:198, place:112, push:132, cd:.85,
+};
+const CPU_TECH = .3;
+const thr = { on:false, att:null, def:null, t:0, phase:'', back:false, tx:0, fromX:0, cpuTechAt:-1 };
+function thrReset(){
+  if (thr.att) thr.att.poseSpin = 0;
+  if (thr.def) thr.def.poseSpin = 0;
+  thr.on = false; thr.att = thr.def = null; thr.t = 0; thr.phase = ''; thr.cpuTechAt = -1;
+}
+function throwBlocked(f){
+  if (airborne(f)) return 'No throwing in the air';
+  if (f.throwCD > 0) return 'Throw is still recovering';
+  return '';
+}
+function canThrow(f){
+  return !airborne(f) && f.hp > 0 && f.throwCD <= 0 && !thr.on &&
+    !Q.active && game.phase === 'fight' && !cine.on;
+}
+// who can be grabbed: not off the floor, not already being thrown, not on the ground. Blocking
+// is deliberately not on this list.
+function throwable(o){
+  if (airborne(o) || o.hp <= 0 || o.invuln > 0) return false;
+  return !(o.state === 'down' || o.state === 'getup' || o.state === 'ko' ||
+           o.state === 'grabbed' || o.state === 'thrown' || o.state === 'frozen');
+}
+function startThrow(f){
+  const h = f.held;
+  f.throwBack = (h.left && f.facing > 0) || (h.right && f.facing < 0);   // back throw
+  f.facing = Math.sign(other(f).x - f.x) || f.facing;
+  setState(f, 'grab'); f.throwCD = THROW.cd; f.vx = 0; f.buffer = null;
+  sfx.whoosh();
+}
+function tryGrab(att, def){
+  if (Math.abs(def.x - att.x) > THROW.range) return false;
+  if (Math.abs(def.y - att.y) > THROW.reach) return false;
+  if (!throwable(def)) return false;
+  thr.on = true; thr.att = att; thr.def = def; thr.t = 0; thr.phase = 'hold';
+  thr.back = !!att.throwBack;
+  setState(att, 'throw'); setState(def, 'grabbed');
+  att.vx = 0; def.vx = 0; def.vy = 0; def.hitstun = 0; def.buffer = null;
+  endJuggle(def); def.poseSpin = 0; att.combo = 0;
+  def.x = clamp(att.x + att.facing * 64, WALL_L, WALL_R);
+  def.y = GROUND; att.y = GROUND;
+  game.hitstop = .09; game.shake = Math.max(game.shake, 9);
+  screenFlash(); sfx.grab();                          // the flash is the tech cue
+  // the CPU decides here whether this one gets away
+  thr.cpuTechAt = (def.cpu && Math.random() < CPU_TECH) ? rand(.05, THROW.tech - .05) : -1;
+  return true;
+}
+function techThrow(){
+  if (!thr.on || thr.phase !== 'hold' || thr.t > THROW.tech) return false;
+  const att = thr.att, def = thr.def;
+  const s = Math.sign(def.x - att.x) || att.facing;
+  setState(att, restState(att)); setState(def, restState(def));
+  att.x = clamp(att.x - s * THROW.push * .5, WALL_L, WALL_R);
+  def.x = clamp(def.x + s * THROW.push * .5, WALL_L, WALL_R);
+  att.invuln = def.invuln = .25; att.inputLock = def.inputLock = .14;
+  att.throwCD = def.throwCD = .5;
+  sparks((att.x + def.x) / 2, GROUND - 150, { col:'255,236,180', n:LOW ? 14 : 34, speed:440, life:.5, add:true });
+  game.shake = Math.max(game.shake, 12); game.hitstop = .07;
+  screenFlash(); sfx.clink();
+  showBanner('THROW ESCAPE', 'tech', 900);
+  thrReset();
+  return true;
+}
+// The throw proper: held, then up, over, and down. Driven here rather than out of the fighter
+// state machine, because for its length the two of them are one moving thing.
+function updateThrow(dt){
+  if (!thr.on) return;
+  const att = thr.att, def = thr.def;
+  if (game.phase !== 'fight' || att.hp <= 0){ thrReset(); return; }
+  thr.t += dt;
+  if (thr.phase === 'hold'){
+    def.x = clamp(att.x + att.facing * 64, WALL_L, WALL_R);
+    def.y = GROUND;
+    if (thr.cpuTechAt >= 0 && thr.t >= thr.cpuTechAt){ techThrow(); return; }
+    if (thr.t >= THROW.hold){
+      thr.phase = 'lift'; thr.t = 0;
+      thr.fromX = def.x;
+      thr.tx = clamp(att.x + (thr.back ? -1 : 1) * att.facing * THROW.place, WALL_L + 20, WALL_R - 20);
+      sfx.whoosh();
+    }
+  } else if (thr.phase === 'lift'){
+    const k = clamp(thr.t / THROW.lift, 0, 1), e = 1 - Math.pow(1 - k, 2);
+    def.y = GROUND - THROW.lifted * e;
+    def.x = thr.fromX + (thr.tx - thr.fromX) * (e * .45);
+    def.poseSpin = e * Math.PI * .9 * -att.facing;     // over they go
+    if (k >= 1){ thr.phase = 'slam'; thr.t = 0; }
+  } else if (thr.phase === 'slam'){
+    const k = clamp(thr.t / THROW.slam, 0, 1), e = k * k;
+    def.y = GROUND - THROW.lifted * (1 - e);
+    def.x = thr.fromX + (thr.tx - thr.fromX) * (.45 + .55 * e);
+    def.poseSpin = (Math.PI * .9 + e * Math.PI * 1.1) * -att.facing;
+    if (k >= 1){
+      def.x = thr.tx; def.y = GROUND; def.vy = 0; def.poseSpin = 0;
+      const n = thr.back ? THROW.backDmg : THROW.dmg;
+      setState(att, restState(att)); att.throwCD = .35;
+      game.shake = Math.max(game.shake, 22); sfx.slam();
+      sparks(def.x, GROUND - 20, { col:'206,172,138', n:LOW ? 10 : 26, speed:360, gravity:700, life:.5 });
+      thrReset();
+      dealDamage(att, def, n, { knockdown:true, heavy:true, x:def.x, y:GROUND - 80 });
+      if (def.state === 'down'){ def.vx = 0; def.downT = 1.05; }
+      floatText(def, '-' + n, 'bad');
+    }
+  }
+}
+
 // ---------------------------------------------------------------- special moves
 // Motion inputs, read off an input buffer. Every time a direction goes from not-held to held
 // it lands in the fighter's buffer with a timestamp; pressing an attack then asks whether the
@@ -985,6 +1132,7 @@ function updateShots(dt){
 function shotHits(s, o){
   if (o.invuln > 0 || o.vanish > 0) return false;
   if (o.state === 'down' || o.state === 'getup' || o.state === 'ko') return false;
+  if (o.state === 'grabbed' || o.state === 'thrown') return false;
   return Math.abs(o.x - s.x) < shotR(s) + 34 && Math.abs((o.y - 104) - s.y) < 90;
 }
 function shotHit(s, o){
@@ -1304,6 +1452,7 @@ function cineBegin(att, def){
   // the arena is about to be theirs alone: nothing of the fight before it comes along
   clearEffects();
   if (def.frozen > 0){ thaw(def); sfx.clink(); }
+  att.poseSpin = def.poseSpin = 0;
   att.frozen = 0; att.vanish = 0; def.vanish = 0;
   att.vx = def.vx = 0; att.vy = def.vy = 0; att.y = def.y = GROUND;
   // the stage is about to go black, so this is a free moment to put the pair somewhere clean
@@ -1568,6 +1717,7 @@ function updateFighter(f, o, dt, now){
   f.stateT += dt; f.animT += dt;
   if (f.invuln > 0) f.invuln -= dt;
   if (f.vanish > 0) f.vanish = Math.max(0, f.vanish - dt);
+  if (f.throwCD > 0) f.throwCD -= dt;
   for (let i = 0; i < f.spCD.length; i++) if (f.spCD[i] > 0) f.spCD[i] -= dt;
   if (f.fatalCD > 0) f.fatalCD -= dt;
   if (f.inputLock > 0) f.inputLock -= dt;
@@ -1584,6 +1734,12 @@ function updateFighter(f, o, dt, now){
       f.frozen -= dt;
       if (f.frozen <= 0){ thaw(f); sparks(f.x, f.y - 110, { col:'198,240,255', n:LOW ? 10 : 26, speed:340, life:.5, add:true }); }
       break;
+    case 'grab': {
+      if (!thr.on && f.stateT >= THROW.startup && f.stateT < THROW.startup + THROW.active && tryGrab(f, o)) break;
+      if (f.stateT >= THROW.startup + THROW.active + THROW.recovery) setState(f, restState(f));
+      break;
+    }
+    case 'throw': case 'grabbed': case 'thrown': break;     // updateThrow owns these
     case 'cast': {
       const sp = f.special;
       if (!sp){ setState(f, restState(f)); break; }
@@ -1609,7 +1765,8 @@ function updateFighter(f, o, dt, now){
 
   // gravity runs under every state except the scripted ones that pin fighters to the floor,
   // and ice, which holds them exactly where it caught them
-  if ((airborne(f) || f.vy < 0) && f.state !== 'frozen'){
+  const pinned = f.state === 'frozen' || f.state === 'grabbed' || f.state === 'thrown';
+  if ((airborne(f) || f.vy < 0) && !pinned){
     f.vy += GRAVITY * dt; f.y += f.vy * dt;
     if (f.y >= GROUND){
       f.y = GROUND; f.vy = 0;
@@ -1631,6 +1788,7 @@ function updateFighter(f, o, dt, now){
       f.buffer = null;
       if (b === 'fatal'){ if (canFatal(f)) startAttack(f, 'fatal'); }
       else if (b === 'don'){ if (canDon(f)) startDon(f); }
+      else if (b === 'throw'){ if (canThrow(f)) startThrow(f); }
       else if (b === 'sp0' || b === 'sp1'){
         const i = b === 'sp1' ? 1 : 0;
         if (specReady(f, i)) startSpecial(f, i);
@@ -1664,7 +1822,7 @@ function updateFighter(f, o, dt, now){
     }
   }
   if (f.buffer && now - f.buffer.at > ((f.buffer.act === 'fatal' || f.buffer.act === 'don') ? 1600 : 400)) f.buffer = null;
-  if (f.vx && f.state !== 'frozen'){   // ice holds them still sideways as well as upright
+  if (f.vx && !pinned){               // ice, and a pair of hands, hold them still sideways too
     f.x += f.vx * dt; f.vx *= Math.exp(-5 * dt); if (Math.abs(f.vx) < 4) f.vx = 0;
   }
   f.x = clamp(f.x, WALL_L, WALL_R);
@@ -1702,6 +1860,11 @@ function cpuThink(c, o, dt, now){
       if (!c.lowUsed.fatal && c.fatalCD <= 0 && dist < 230 && Math.random() < .3) c.buffer = { act:'fatal', at:now };
       else if (!c.lowUsed.don && Math.random() < .04) c.buffer = { act:'don', at:now };
     }
+    // a guard is not a wall: throw it open
+    if (!c.buffer && canThrow(c) && dist < THROW.range - 8){
+      const guarding = o.state === 'block' || o.state === 'blockstun';
+      if (Math.random() < (guarding ? .45 : .12)) c.buffer = { act:'throw', at:now };
+    }
     // specials: the projectile at range, the teleport at mid range
     if (!c.buffer && !airborne(c) && o.state !== 'airhit'){
       if (dist > 250 && specReady(c, 0) && Math.random() < .3) c.buffer = { act:'sp0', at:now };
@@ -1733,11 +1896,11 @@ function cpuThink(c, o, dt, now){
 
 // ---------------------------------------------------------------- input
 const keys = new Set(), pressedKeys = new Set();
-const ACTS = ['fp', 'bp', 'fk', 'bk', 'amp', 'sp', 'fatal', 'don'];
+const ACTS = ['fp', 'bp', 'fk', 'bk', 'amp', 'sp', 'throw', 'fatal', 'don'];
 const ANSWER_IDX = { fp:0, bp:1, fk:2, bk:3 };
 const KEYMAP = [
-  { left:['KeyA'], right:['KeyD'], block:['KeyS'], jump:['KeyW'], fp:['KeyU'], bp:['KeyI'], fk:['KeyJ'], bk:['KeyK'], amp:['KeyO'], sp:['KeyH'], fatal:['KeyP'], don:['KeyL'] },
-  { left:['ArrowLeft'], right:['ArrowRight'], block:['ArrowDown'], jump:['ArrowUp'], fp:['Numpad7'], bp:['Numpad8'], fk:['Numpad4'], bk:['Numpad5'], amp:['Numpad3'], sp:['Numpad1'], fatal:['Numpad9'], don:['Numpad6'] },
+  { left:['KeyA'], right:['KeyD'], block:['KeyS'], jump:['KeyW'], fp:['KeyU'], bp:['KeyI'], fk:['KeyJ'], bk:['KeyK'], amp:['KeyO'], sp:['KeyH'], throw:['KeyG'], fatal:['KeyP'], don:['KeyL'] },
+  { left:['ArrowLeft'], right:['ArrowRight'], block:['ArrowDown'], jump:['ArrowUp'], fp:['Numpad7'], bp:['Numpad8'], fk:['Numpad4'], bk:['Numpad5'], amp:['Numpad3'], sp:['Numpad1'], throw:['Numpad2'], fatal:['Numpad9'], don:['Numpad6'] },
 ];
 const padPrev = [{}, {}], padStates = [null, null];
 function pollPads(){
@@ -1748,7 +1911,9 @@ function pollPads(){
     const b = j => !!(p.buttons[j] && p.buttons[j].pressed);
     const ax = p.axes[0] || 0, ay = p.axes[1] || 0;
     const st = { left:ax < -.45 || b(14), right:ax > .45 || b(15), block:b(6), jump:ay < -.5 || b(12), pressed:[] };
-    const map = { fp:2, bp:3, fk:0, bk:1, amp:7, sp:11, fatal:4, don:5, start:9 };   // amp R2, special R3, block L2
+    const map = { fp:2, bp:3, fk:0, bk:1, amp:7, sp:11, throw:4, fatal:10, don:5, start:9 };
+    // L1 throw, L2 block, R2 amplify; the two stick clicks are the two committed moves,
+    // L3 Fatal Blow and R3 special
     for (const act in map){ const d = b(map[act]); if (d && !padPrev[i][act]) st.pressed.push(act); padPrev[i][act] = d; }
     padStates[i] = st;
   }
@@ -1804,11 +1969,14 @@ function gatherInputs(now){
       if (ans) answer(f, ANSWER_IDX[ans]);
       continue;
     }
-    if (game.freeze || game.phase !== 'fight' || f.inputLock > 0) continue;
+    if (game.phase !== 'fight') continue;
+    if ((game.freeze || f.inputLock > 0) && !(thr.on && thr.def === f)) continue;
     for (const a of k.pressed){
       // Amplify mid-cast upgrades the special instead of starting a launcher, the way it does
       // in the game this borrows from. It has to be read here: a casting fighter is busy, so
       // the press would never reach the buffer.
+      // the tech: the only input a grabbed fighter has, and it only counts inside the window
+      if (a === 'throw' && thr.on && thr.def === f){ techThrow(); continue; }
       if (a === 'amp' && f.state === 'cast'){
         if (!ampSpecial(f)) toast(f.specAmp ? 'Already amplified' : 'Amplify needs one full bar of meter');
         continue;
@@ -1818,6 +1986,9 @@ function gatherInputs(now){
         if (why){ toast(why); continue; }
       } else if (a === 'amp'){
         const why = ampBlocked(f);
+        if (why){ toast(why); continue; }
+      } else if (a === 'throw'){
+        const why = throwBlocked(f);
         if (why){ toast(why); continue; }
       }
       const resolved = specialFor(f, a, now);
@@ -1863,7 +2034,7 @@ document.querySelectorAll('#touch .tb').forEach(btn => {
   const pb = $('#tbPause');
   if (pb) pb.addEventListener('pointerdown', e => { e.preventDefault(); if (['fight', 'intro', 'ko'].includes(game.phase)) togglePause(true); });
 })();
-const tbAmp = $('#tbAmp'), tbSpecial = $('#tbSpecial'), tbFatal = $('#tbFatal'), tbDon = $('#tbDon');
+const tbAmp = $('#tbAmp'), tbSpecial = $('#tbSpecial'), tbThrow = $('#tbThrow'), tbFatal = $('#tbFatal'), tbDon = $('#tbDon');
 function updateTouchUI(){
   const playing = game.phase !== 'menu';
   document.body.classList.toggle('playing', playing);
@@ -1872,12 +2043,15 @@ function updateTouchUI(){
   document.body.classList.toggle('answering', !!(A && !A.resolved && A.participants.includes(F[0]) && !F[0].cpu));
   if (tbAmp) tbAmp.classList.toggle('ready', canAmp(F[0]));
   if (tbSpecial) tbSpecial.classList.toggle('ready', specReady(F[0], F[0].held.block ? 1 : 0));
+  // while they are in a throw the button is the tech, and it should look like the urgent one
+  if (tbThrow) tbThrow.classList.toggle('ready', (thr.on && thr.def === F[0]) || canThrow(F[0]));
+  document.body.classList.toggle('teching', thr.on && thr.def === F[0] && thr.t <= THROW.tech);
   if (tbFatal) tbFatal.classList.toggle('ready', canFatal(F[0]));
   if (tbDon) tbDon.classList.toggle('ready', canDon(F[0]));
 }
 
 // ---------------------------------------------------------------- rounds
-function clearEffects(){ SHOTS.forEach(s => { s.live = false; s.hooked = null; }); FX.length = 0; }
+function clearEffects(){ SHOTS.forEach(s => { s.live = false; s.hooked = null; }); FX.length = 0; thrReset(); }
 function resetFighters(){
   clearEffects();
   F.forEach((f, i) => {
@@ -1886,7 +2060,7 @@ function resetFighters(){
     f.hitstun = 0; f.invuln = 0; f.scripted = false; f.attackHit = false; f.inputLock = 0; f.flash = 0;
     f.jumpBuf = 0; f.jumpHeld = false; f.juggle = 0; f.bounced = false; f.downT = DOWN_T;
     f.frozen = 0; f.vanish = 0; f.special = null; f.specAmp = false; f.specFired = false;
-    f.spCD = [0, 0]; f.motion.length = 0; f.dirPrev = {};
+    f.spCD = [0, 0]; f.motion.length = 0; f.dirPrev = {}; f.throwCD = 0; f.poseSpin = 0; f.throwBack = false;
   });
 }
 function startRound(){
@@ -1987,14 +2161,15 @@ function simulate(dt, now){
   F.forEach(f => trackMotion(f, now));
   updateFighter(F[0], F[1], dt, now);
   updateFighter(F[1], F[0], dt, now);
-  updateShots(dt); updateFx(dt);
+  updateThrow(dt); updateShots(dt); updateFx(dt);
   for (const f of F){
     const o = other(f);
+    if (thr.on && (f === thr.att || f === thr.def)) continue;
     if (f.state === 'idle' || f.state === 'walk' || f.state === 'block' || f.state === 'air') f.facing = Math.sign(o.x - f.x) || f.facing;
   }
   // fighters can't stand inside each other, unless one of them is on the floor
   const dx = F[1].x - F[0].x, lying = s => s === 'down' || s === 'ko' || s === 'airhit' || s === 'frozen';
-  const gone = F[0].vanish > 0 || F[1].vanish > 0;
+  const gone = F[0].vanish > 0 || F[1].vanish > 0 || thr.on;
   if (!gone && Math.abs(dx) < MIN_GAP && !lying(F[0].state) && !lying(F[1].state) && Math.abs(F[0].y - F[1].y) < 120){
     const push = (MIN_GAP - Math.abs(dx)) / 2, s = Math.sign(dx) || 1;
     F[0].x -= s * push; F[1].x += s * push;
@@ -2166,5 +2341,6 @@ requestAnimationFrame(frame);
 // Off unless the page is opened with #debug, so a normal game exposes nothing.
 if (location.hash === '#debug') window.CRK = { F, game, Q, box, ATT, SHEETS, IMG, startMatch, frameOf,
   launchUp, juggleUp, gainMeter, cine, cam, FATAL_SEQ, triggerFatal, cineReset,
-  SPECIALS, SHOTS, FX, startSpecial, ampSpecial, motionMatch, freezeFighter, MOTION_WINDOW };
+  SPECIALS, SHOTS, FX, startSpecial, ampSpecial, motionMatch, freezeFighter, MOTION_WINDOW,
+  thr, THROW, startThrow, tryGrab, techThrow, canThrow, CPU_TECH };
 })();

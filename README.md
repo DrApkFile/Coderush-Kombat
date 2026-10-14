@@ -20,9 +20,10 @@ it ever fetches is the three web fonts.
 | Jump              | `W`               | `↑`                  | Stick or d-pad up |
 | Block (hold)      | `S`               | `↓`                  | L2 / LT           |
 | Attacks           | `U` `I` `J` `K`   | numpad `7` `8` `4` `5` | `□` `△` `✕` `○` |
+| Throw             | `G`               | numpad `2`           | L1 / LB           |
 | Special           | `H`               | numpad `1`           | R3 / stick click  |
 | Amplify           | `O`               | numpad `3`           | R2 / RT           |
-| Fatal Blow        | `P`               | numpad `9`           | L1 / LB           |
+| Fatal Blow        | `P`               | numpad `9`           | L3 / stick click  |
 | Double or nothing | `L`               | numpad `6`           | R1 / RB           |
 
 `Esc` pauses, `M` mutes. On a phone, turn it sideways — touch buttons appear once the fight
@@ -30,6 +31,25 @@ starts. The same four attack buttons answer A, B, C and D when a question is up.
 
 Two sword animations give four attacks: each one has a light version (quick, cheap, safe) and
 a heavy version (slow, committed, hurts). The heaviest knocks the opponent down.
+
+## Throws
+
+Only up close, and a guard is no defence: a throw goes straight through a block, which is what
+stops blocking from being a free ride. You can't throw out of the air or out of hitstun. Holding
+**back** as you throw puts them down behind you instead of in front, for a little more damage.
+
+When a throw grabs, the screen flashes white — that flash is the cue. It opens a **0.35 second
+window** for the fighter being held to tap Throw themselves: do it and the throw breaks, both of
+them are shoved apart and **THROW ESCAPE** lands on screen. Miss it and you go up, over and down
+into a knockdown. The CPU gets out of about three throws in ten, and will throw a player who
+sits on block.
+
+The tech is read straight out of the input pass rather than the usual buffer, because a fighter
+in someone's hands is in no state to buffer anything — the same way Amplify is read mid-cast.
+
+| | Forward | Back (hold back) |
+| --- | --- | --- |
+| Damage | 14 | 17 |
 
 ## Special moves
 
@@ -150,19 +170,21 @@ the layout depends on the screen size. Fighters are positioned by the point betw
 which is also how the sprite sheets are anchored: every frame of a character puts the body in
 the same place, so one anchor lines up all eight animations.
 
-The juggle, Fatal Blow and casting animations are placeholders. Rather than ship invented art, each of them borrows the
+The juggle, Fatal Blow, casting and throw animations are placeholders. Rather than ship invented art, each of them borrows the
 frames of another animation and bends them with a canvas transform while drawing — the stagger is
 the take-hit frames leaned back, the knockdown is a fall frame rotated flat, the post-bounce
 tumble is a fall frame flipped upside down. They are declared in the sprite table next to the
 real animations, with a `pose` holding the transform, so dropping in a real Launcher, AirHit,
-Knockdown, Getup, Cast or FatalBlow strip is three edits: add the file to the `ART` table in `tools/build.mjs`
+Knockdown, Getup, Cast, Grab, Throw, Thrown or FatalBlow strip is three edits: add the file to the `ART` table in `tools/build.mjs`
 (the keys are already there, commented out), point the animation's `img` at it, and delete its
 `pose`. The `dy` in each pose is what keeps the pose's lowest pixel on the floor rather than
 through it; those numbers were measured off these sheets and want re-measuring if the art changes. A
 one-frame pose borrows a single frame out of the middle of a strip with `of` (how many frames
 the file holds) and `offset` (which one) — and it has to be a frame that shows the fighter: the
 later frames of these attack strips are mostly the white slash effect, which alone reads as a
-blank flash rather than a pose.
+blank flash rather than a pose. A pose can also be spun at run time on top of whatever its
+strip carries — that is how a thrown fighter turns over in the air — so a borrowed pose that
+will be spun needs its pivot near the middle of the body rather than at the feet.
 
 Attack timing is the game's, not the art's. Each move declares startup, active and recovery
 frames, and the animation is stretched to fit, with the frame where the blade arrives pinned to

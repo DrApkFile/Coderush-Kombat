@@ -5,12 +5,19 @@ to use. The game is built around that art, not the other way round.
 
 ## Fighter sprites — [LuizMelo](https://luizmelo.itch.io/)
 
-* **Serpent.py** uses [Martial Hero](https://luizmelo.itch.io/martial-hero)
-* **Undefined.js** uses [Martial Hero 2](https://luizmelo.itch.io/martial-hero-2)
+Both fighters are **based on LuizMelo's Martial Hero sprites, modified**.
 
-Idle, run, jump, fall, two attacks, take-hit and death animations for each fighter —
-`assets/fighters/`. Released under CC0, so credit isn't required. It's here because the art
-is the reason the game looks like anything at all.
+* **Serpent.py** is based on [Martial Hero](https://luizmelo.itch.io/martial-hero)
+* **Undefined.js** is based on [Martial Hero 2](https://luizmelo.itch.io/martial-hero-2)
+
+The idle, run, jump, fall, two attacks, take-hit and death animations are the original art.
+Everything else a fighter does here — block, launcher, cast, grab, throw and the Fatal Blow
+beats — was built from those frames: recomposed into new strips in Aseprite, kept to the same
+palette, outline, 200x200 frame and foot baseline. Working files are in `art/`, the exported
+strips in `assets/fighters/`.
+
+Released under CC0, so credit isn't required. It's here because the art is the reason the game
+looks like anything at all.
 
 ## Stage and background — [brullov](https://brullov.itch.io/)
 

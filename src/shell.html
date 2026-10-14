@@ -79,14 +79,17 @@
               <td><span class="kgrid"><kbd>U</kbd><kbd>I</kbd><kbd>J</kbd><kbd>K</kbd></span></td>
               <td><span class="kgrid"><kbd>7</kbd><kbd>8</kbd><kbd>4</kbd><kbd>5</kbd></span> numpad</td>
               <td><span class="kgrid"><kbd>□</kbd><kbd>△</kbd><kbd>✕</kbd><kbd>○</kbd></span></td></tr>
+            <tr><th>Throw</th><td><kbd>G</kbd></td><td><kbd>2</kbd> numpad</td><td>L1 / LB</td></tr>
             <tr><th>Special</th><td><kbd>H</kbd></td><td><kbd>1</kbd> numpad</td><td>R3 / stick click</td></tr>
             <tr><th>Amplify</th><td><kbd>O</kbd></td><td><kbd>3</kbd> numpad</td><td>R2 / RT</td></tr>
-            <tr><th>Fatal Blow</th><td><kbd>P</kbd></td><td><kbd>9</kbd> numpad</td><td>L1 / LB</td></tr>
+            <tr><th>Fatal Blow</th><td><kbd>P</kbd></td><td><kbd>9</kbd> numpad</td><td>L3 / stick click</td></tr>
             <tr><th>Double or nothing</th><td><kbd>L</kbd></td><td><kbd>6</kbd> numpad</td><td>R1 / RB</td></tr>
           </tbody>
         </table>
         </div>
         <p class="note">Top row of the attack grid is the light and heavy sword slash, bottom row is the light and heavy spin cut. Hold block to guard. The same four buttons answer A, B, C and D. Against the CPU you can also use the arrows and numpad. Esc pauses, M mutes.</p>
+        <h3>Throws</h3>
+        <p class="note">Only up close, and a guard is no defence — a throw goes straight through a block, which is what stops blocking being a free ride. You can't throw from the air or out of hitstun. Hold <b>back</b> as you throw to put them down behind you instead of in front, for a bit more damage. When a throw grabs, the screen flashes white: that's a <b>0.35 second window</b> for the one being held to tap Throw themselves and break out. Miss it and you go up, over, and down.</p>
         <h3>Special moves</h3>
         <p class="note">Each fighter has two, done on a motion: <b>back, forward</b> then the first attack button, and <b>down, back</b> then the second — the whole motion inside 0.4 seconds. The Special button does the same thing without the motion, and does the second move if you hold block while pressing it. Specials cost nothing, but pressing Amplify while one is still coming out spends a bar of meter to make it hit harder and land bigger. Projectiles can be blocked for chip damage, and two of them thrown at once cancel each other out.</p>
         <h3>Juggles</h3>
@@ -116,7 +119,7 @@
       <div class="panel credit">
         <h3>Fighter sprites</h3>
         <p class="by"><a href="https://luizmelo.itch.io/" target="_blank" rel="noopener">LuizMelo</a></p>
-        <p class="what">Serpent.py is <a href="https://luizmelo.itch.io/martial-hero" target="_blank" rel="noopener">Martial Hero</a>; Undefined.js is <a href="https://luizmelo.itch.io/martial-hero-2" target="_blank" rel="noopener">Martial Hero 2</a>. Idle, run, jump, fall, both attacks, take-hit and death animations.</p>
+        <p class="what">Both fighters are based on LuizMelo's Martial Hero sprites, modified. Serpent.py from <a href="https://luizmelo.itch.io/martial-hero" target="_blank" rel="noopener">Martial Hero</a>, Undefined.js from <a href="https://luizmelo.itch.io/martial-hero-2" target="_blank" rel="noopener">Martial Hero 2</a>. Idle, run, jump, fall, both attacks, take-hit and death are the original animations; the block, launcher, cast, grab, throw and Fatal Blow strips were built from those frames.</p>
         <p class="lic">Released under CC0. Credit isn't required — it's here because the art deserves it.</p>
       </div>
       <div class="panel credit">
@@ -169,6 +172,7 @@
   <div class="tact">
     <button class="tb small" id="tbAmp" data-code="KeyO" type="button">Amplify</button>
     <button class="tb small" id="tbSpecial" data-code="KeyH" type="button">Special</button>
+    <button class="tb small wide" id="tbThrow" data-code="KeyG" type="button">Throw</button>
     <button class="tb small" id="tbFatal" data-code="KeyP" type="button">Fatal Blow</button>
     <button class="tb small" id="tbDon" data-code="KeyL" type="button">Double or nothing</button>
     <button class="tb attack" data-code="KeyU" type="button"><b>A</b><small>Slash</small></button>
